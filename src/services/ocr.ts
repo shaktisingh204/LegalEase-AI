@@ -17,7 +17,7 @@ export async function extractTextFromImage(dataUri: string): Promise<string> {
 
   if (!processorId || !location || !projectId) {
     throw new Error(
-      'DOCUMENT_AI_PROCESSOR_ID, DOCUMENT_AI_LOCATION, or GOOGLE_CLOUD_PROJECT environment variable not set.'
+      'The following environment variables are required for Document AI but are not set: GOOGLE_CLOUD_PROJECT, DOCUMENT_AI_LOCATION, DOCUMENT_AI_PROCESSOR_ID.'
     );
   }
 

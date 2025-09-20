@@ -22,6 +22,10 @@ export async function translateText(
     return text;
   }
   
+  if (!process.env.GOOGLE_CLOUD_PROJECT) {
+      throw new Error('The GOOGLE_CLOUD_PROJECT environment variable is not set.');
+  }
+
   try {
     const [translation] = await translate.translate(text, targetLanguage);
     return translation;
