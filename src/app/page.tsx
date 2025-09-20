@@ -58,8 +58,11 @@ export default function Home() {
         }
       }
     };
-    handleLanguageChange();
-  }, [language]);
+
+    if (isMounted) {
+      handleLanguageChange();
+    }
+  }, [language, isMounted]);
 
 
   const handleFileUpload = async (file: File) => {
