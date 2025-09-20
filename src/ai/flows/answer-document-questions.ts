@@ -8,7 +8,7 @@
  * - AnswerDocumentQuestionsOutput - The return type for the answerDocumentQuestions function.
  */
 
-import {ai} from '@/ai/genkit';
+import {getAi} from '@/ai/genkit';
 import { translateText } from '@/services/translate';
 import {z} from 'genkit';
 
@@ -31,18 +31,16 @@ export type AnswerDocumentQuestionsOutput = z.infer<
 export async function answerDocumentQuestions(
   input: AnswerDocumentQuestionsInput
 ): Promise<AnswerDocumentQuestionsOutput> {
-  return answerDocumentQuestionsFlow(input);
-}
-
-// The AI is prompted in English for higher quality responses.
-const prompt = ai.definePrompt({
-  name: 'answerDocumentQuestionsPrompt',
-  input: {schema: z.object({
-    documentText: z.string(),
-    question: z.string(),
-  })},
-  output: {schema: AnswerDocumentQuestionsOutputSchema},
-  prompt: `You are an AI assistant and expert legal analyst. Your task is to answer the user's question based *only* on the provided legal document. Provide a clear, concise, and easy-to-understand answer for a non-lawyer.
+  const ai = getAi();
+  // The AI is prompted in English for higher quality responses.
+  const prompt = ai.definePrompt({
+    name: 'answerDocumentQuestionsPrompt',
+    input: {schema: z.object({
+      documentText: z.string(),
+      question: z.string(),
+    })},
+    output: {schema: AnswerDocumentQuestionsOutputSchema},
+    prompt: `You are an AI assistant and expert legal analyst. Your task is to answer the user's question based *only* on the provided legal document. Provide a clear, concise, and easy-to-understand answer for a non-lawyer.
 
 If the user's question is too generic or broad (e.g., "what is this document about?", "what's in it?"), do not say you cannot answer. Instead, provide a brief, high-level summary of the document as the answer.
 
@@ -51,28 +49,31 @@ Document Text: {{{documentText}}}
 Question: {{{question}}}
 
 Answer in English:`,
-});
+  });
 
-const answerDocumentQuestionsFlow = ai.defineFlow(
-  {
-    name: 'answerDocumentQuestionsFlow',
-    inputSchema: AnswerDocumentQuestionsInputSchema,
-    outputSchema: AnswerDocumentQuestionsOutputSchema,
-  },
-  async ({documentText, question, language}) => {
-    // Translate the user's question to English for the AI.
-    const translatedQuestion = await translateText(question, 'en');
+  const answerDocumentQuestionsFlow = ai.defineFlow(
+    {
+      name: 'answerDocumentQuestionsFlow',
+      inputSchema: AnswerDocumentQuestionsInputSchema,
+      outputSchema: AnswerDocumentQuestionsOutputSchema,
+    },
+    async ({documentText, question, language}) => {
+      // Translate the user's question to English for the AI.
+      const translatedQuestion = await translateText(question, 'en');
 
-    // Get the answer from the AI in English.
-    const {output} = await prompt({ documentText, question: translatedQuestion });
-    
-    if (!output?.answer) {
-        return { answer: '' };
+      // Get the answer from the AI in English.
+      const {output} = await prompt({ documentText, question: translatedQuestion });
+      
+      if (!output?.answer) {
+          return { answer: '' };
+      }
+
+      // Translate the AI's English answer back to the user's target language.
+      const translatedAnswer = await translateText(output.answer, language);
+      
+      return { answer: translatedAnswer };
     }
+  );
 
-    // Translate the AI's English answer back to the user's target language.
-    const translatedAnswer = await translateText(output.answer, language);
-    
-    return { answer: translatedAnswer };
-  }
-);
+  return answerDocumentQuestionsFlow(input);
+}

@@ -1,7 +1,14 @@
-import {genkit} from 'genkit';
+import {genkit, Genkit} from 'genkit';
 import {vertexAI} from '@genkit-ai/vertexai';
 
-export const ai = genkit({
-  plugins: [vertexAI()],
-  model: 'vertexai/gemini-2.5-flash',
-});
+let aiInstance: Genkit | null = null;
+
+export function getAi() {
+  if (!aiInstance) {
+    aiInstance = genkit({
+      plugins: [vertexAI()],
+      model: 'vertexai/gemini-2.5-flash',
+    });
+  }
+  return aiInstance;
+}

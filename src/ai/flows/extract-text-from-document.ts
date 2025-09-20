@@ -8,7 +8,7 @@
  * - ExtractTextFromDocumentOutput - The return type for the extractTextFromDocument function.
  */
 
-import {ai} from '@/ai/genkit';
+import {getAi} from '@/ai/genkit';
 import { extractTextFromImage } from '@/services/ocr';
 import {z} from 'genkit';
 
@@ -33,19 +33,17 @@ export type ExtractTextFromDocumentOutput = z.infer<
 export async function extractTextFromDocument(
   input: ExtractTextFromDocumentInput
 ): Promise<ExtractTextFromDocumentOutput> {
+  const ai = getAi();
+  const extractTextFromDocumentFlow = ai.defineFlow(
+    {
+      name: 'extractTextFromDocumentFlow',
+      inputSchema: ExtractTextFromDocumentInputSchema,
+      outputSchema: ExtractTextFromDocumentOutputSchema,
+    },
+    async (input) => {
+      const text = await extractTextFromImage(input.documentDataUri);
+      return { text };
+    }
+  );
   return extractTextFromDocumentFlow(input);
 }
-
-const extractTextFromDocumentFlow = ai.defineFlow(
-  {
-    name: 'extractTextFromDocumentFlow',
-    inputSchema: ExtractTextFromDocumentInputSchema,
-    outputSchema: ExtractTextFromDocumentOutputSchema,
-  },
-  async (input) => {
-    // Note: The main application now calls the ocr service directly.
-    // This flow is kept for potential standalone use or testing.
-    const text = await extractTextFromImage(input.documentDataUri);
-    return { text };
-  }
-);

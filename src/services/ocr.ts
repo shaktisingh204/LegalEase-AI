@@ -5,6 +5,9 @@
 
 import {DocumentProcessorServiceClient} from '@google-cloud/documentai';
 
+let client: DocumentProcessorServiceClient | null = null;
+
+
 /**
  * Extracts text from a document using the Google Cloud Document AI API.
  * @param dataUri - The document data URI.
@@ -21,9 +24,12 @@ export async function extractTextFromImage(dataUri: string): Promise<string> {
     );
   }
 
-  const client = new DocumentProcessorServiceClient({
-    apiEndpoint: `${location}-documentai.googleapis.com`,
-  });
+  if (!client) {
+    client = new DocumentProcessorServiceClient({
+      apiEndpoint: `${location}-documentai.googleapis.com`,
+    });
+  }
+
 
   const match = dataUri.match(/^data:(.*);base64,(.*)$/);
   if (!match) {

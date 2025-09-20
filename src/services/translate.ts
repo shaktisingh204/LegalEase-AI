@@ -5,7 +5,7 @@
 
 import {Translate} from '@google-cloud/translate/build/src/v2';
 
-const translate = new Translate();
+let translate: Translate | null = null;
 
 /**
  * Translates text to a target language.
@@ -24,6 +24,10 @@ export async function translateText(
   
   if (!process.env.GOOGLE_CLOUD_PROJECT) {
       throw new Error('The GOOGLE_CLOUD_PROJECT environment variable is not set.');
+  }
+
+  if (!translate) {
+    translate = new Translate();
   }
 
   try {
